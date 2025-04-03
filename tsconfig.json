@@ -22,6 +22,6 @@
       "@/*": ["./src/*"]
     }
   },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
+  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", "app/products/product.js", "app/index.js", "app/checkosrc/app/cart/cart.jsp/cart.js"],
   "exclude": ["node_modules"]
 }
