@@ -1,41 +1,37 @@
-"use client";
-
+// app/products/[id]/page.tsx
 import Image from "next/image";
-import { useParams } from "next/navigation";
+import { notFound } from "next/navigation";
+import AddToCartButton from "./AddToCartButton"; // クライアント側ボタン（次で定義）
 
-export default function ProductDetail() {
-  const { id } = useParams(); // URLパラメータ（商品ID）
+const products = [
+  {
+    id: "1",
+    name: "たけのこ 1kg",
+    description: "[佐渡産]たけのこ1kgのセットです。",
+    price: 1500,
+    image: "/takenoko.jpg",
+  },
+  {
+    id: "2",
+    name: "[佐渡産]たけのこ 500g",
+    description: "たけのこ500gのセットです。",
+    price: 800,
+    image: "/takenoko.jpg",
+  },
+];
 
-  // 仮のデータ（実際にはAPIやデータベースから取得します）
-  const products = [
-    {
-      id: "1",
-      name: "たけのこ 1kg",
-      description: "新鮮なたけのこ1kgのセットです。",
-      price: 1500,
-      image: "/takenoko.jpg", // public/takenoko.jpg
-    },
-    {
-      id: "2",
-      name: "たけのこ 500g",
-      description: "新鮮なたけのこ500gのセットです。",
-      price: 800,
-      image: "/takenoko.jpg",
-    },
-  ];
+export async function generateStaticParams() {
+  return products.map((product) => ({ id: product.id }));
+}
 
-  // 商品IDに対応する商品データを取得
-  const product = products.find((p) => p.id === id);
+export default async function ProductDetail({
+  params,
+}: {
+  params: { id: string };
+}) {
+  const product = products.find((p) => p.id === params.id);
 
-  if (!product) {
-    return <div className="text-center text-red-500">商品が見つかりませんでした。</div>;
-  }
-
-  // 購入ボタンの処理（実際には購入画面に遷移するなど）
-  const handlePurchase = () => {
-    alert(`購入処理を開始します: ${product.name}`);
-    // ここで購入ページに遷移したり、購入処理を開始するなどの処理を追加します
-  };
+  if (!product) return notFound();
 
   return (
     <div className="p-6 text-center">
@@ -44,21 +40,17 @@ export default function ProductDetail() {
         <Image
           src={product.image}
           alt={product.name}
-          width={500} // 適切なサイズを指定
-          height={500} // 適切なサイズを指定
+          width={500}
+          height={500}
           className="rounded-lg shadow-lg"
         />
       </div>
       <p className="mt-4">{product.description}</p>
-      <p className="mt-4 text-lg font-bold text-green-500">¥{product.price}</p>
+      <p className="mt-4 text-lg font-bold text-green-500">
+        ¥{product.price.toLocaleString()}
+      </p>
 
-      {/* 購入ボタン */}
-      <button
-        onClick={handlePurchase} // クリック時に購入処理を実行
-        className="mt-6 bg-green-500 text-white px-6 py-2 rounded hover:bg-green-600"
-      >
-        購入
-      </button>
+      <AddToCartButton product={product} />
     </div>
   );
 }

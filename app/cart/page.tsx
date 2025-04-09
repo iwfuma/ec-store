@@ -1,94 +1,91 @@
-"use client";
+'use client'
 
-import { useState } from "react";
-import Image from "next/image";
+import { useCart } from '../context/CartContext'
+import { useRouter } from 'next/navigation'
 
 export default function CartPage() {
-  // 仮のカートデータ（本来はコンテキストやデータベースから取得）
-  const [cart, setCart] = useState([
-    {
-      id: "1",
-      name: "たけのこ 1kg",
-      price: 1500,
-      quantity: 1,
-      image: "/takenoko.jpg",
-    },
-    {
-      id: "2",
-      name: "たけのこ 500g",
-      price: 800,
-      quantity: 2,
-      image: "/takenoko.jpg",
-    },
-  ]);
+  const { cartItems, removeFromCart, clearCart, updateQuantity } = useCart()
+  const router = useRouter()
 
-  // 合計金額を計算
-  const totalPrice = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
+  const total = cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0)
 
-  // 数量変更関数
-  const updateQuantity = (id: string, amount: number) => {
-    setCart((prevCart) =>
-      prevCart.map((item) =>
-        item.id === id ? { ...item, quantity: Math.max(1, item.quantity + amount) } : item
-      )
-    );
-  };
-
-  // カートから削除
-  const removeFromCart = (id: string) => {
-    setCart((prevCart) => prevCart.filter((item) => item.id !== id));
-  };
+  const handleCheckout = async () => {
+    const res = await fetch('/api/checkout', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(cartItems),
+    })
+  
+    const data = await res.json()
+    if (data.url) {
+      window.location.href = data.url // Stripe Checkout へリダイレクト
+    } else {
+      alert('決済ページの作成に失敗しました。')
+    }
+  }
+  
 
   return (
-    <div className="p-6 text-center">
-      <h1 className="text-3xl font-bold mb-6">カート</h1>
-
-      {cart.length === 0 ? (
-        <p className="text-gray-500">カートは空です。</p>
+    <div className="p-6">
+      <h1 className="text-2xl font-bold mb-4">カート</h1>
+      {cartItems.length === 0 ? (
+        <p>カートは空です。</p>
       ) : (
-        <div className="grid gap-6">
-          {cart.map((item) => (
-            <div key={item.id} className="border p-4 rounded-lg flex items-center gap-4 shadow-lg">
-              <Image src={item.image} alt={item.name} width={100} height={100} className="rounded" />
-              <div className="flex-1 text-left">
-                <h2 className="text-xl font-bold">{item.name}</h2>
-                <p className="text-lg text-green-500">¥{item.price}</p>
-                <div className="flex items-center mt-2">
+        <div className="space-y-4">
+          {cartItems.map(item => (
+            <div key={item.id} className="flex justify-between items-center border-b pb-2">
+              <div>
+                <h2 className="text-lg">{item.name}</h2>
+                <div className="flex items-center space-x-2 mt-1">
                   <button
-                    onClick={() => updateQuantity(item.id, -1)}
-                    className="px-3 py-1 bg-gray-300 rounded hover:bg-gray-400"
+                    onClick={() => updateQuantity(item.id, item.quantity - 1)}
+                    className="px-2 py-1 bg-gray-200 rounded hover:bg-gray-300"
+                    disabled={item.quantity <= 1}
                   >
                     −
                   </button>
-                  <span className="px-4">{item.quantity}</span>
+                  <span>{item.quantity}</span>
                   <button
-                    onClick={() => updateQuantity(item.id, 1)}
-                    className="px-3 py-1 bg-gray-300 rounded hover:bg-gray-400"
+                    onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                    className="px-2 py-1 bg-gray-200 rounded hover:bg-gray-300"
                   >
                     ＋
                   </button>
                 </div>
               </div>
-              <button
-                onClick={() => removeFromCart(item.id)}
-                className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600"
-              >
-                削除
-              </button>
+              <div className="text-right">
+                <p>¥{item.price * item.quantity}</p>
+                <button
+                  onClick={() => removeFromCart(item.id)}
+                  className="text-red-500 hover:underline text-sm"
+                >
+                  削除
+                </button>
+              </div>
             </div>
           ))}
+
+          <div className="text-right mt-6 space-y-4">
+            <p className="text-xl font-bold">合計: ¥{total.toLocaleString()}</p>
+
+            <button
+              onClick={handleCheckout}
+              className="bg-green-500 text-white px-6 py-2 rounded hover:bg-green-600 transition"
+            >
+              購入する
+            </button>
+
+            <br />
+
+            <button
+              onClick={clearCart}
+              className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 transition"
+            >
+              カートを空にする
+            </button>
+          </div>
         </div>
       )}
-
-      {/* 合計金額 */}
-      <div className="mt-6 text-lg font-bold">合計: ¥{totalPrice}</div>
-
-      {/* 購入ボタン（Stripe決済に接続予定） */}
-      {cart.length > 0 && (
-        <button className="mt-6 bg-blue-500 text-white px-6 py-2 rounded hover:bg-blue-600">
-          購入する
-        </button>
-      )}
     </div>
-  );
+  )
 }

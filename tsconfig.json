@@ -19,9 +19,13 @@
       }
     ],
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": ["./src/*"],
+      "types/*": ["./src/types/*"],  // 追加
     }
   },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", "app/products/product.js", "app/index.js", "app/checkosrc/app/cart/cart.jsp/cart.js"],
+  "include": ["next-env.d.ts", 
+              "**/*.ts",
+              "**/*.tsx", 
+              ".next/types/**/*.ts", ],
   "exclude": ["node_modules"]
 }
